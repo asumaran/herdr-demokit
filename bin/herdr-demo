@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+# herdr-demo — record README demo GIFs of herdr plugins.
+#
+# A scenario directory (default ./scripts/demo of the plugin you run this
+# from) holds:
+#   scenario.sh   sourced: what the demo session looks like (DEMO_* settings,
+#                 demo_setup() and optional demo_build()/demo_teardown())
+#   keys.json     the keystrokes to replay once the client is attached
+#
+# Commands:
+#   herdr-demo record [options]   build, boot the session, record, render, tear down
+#   herdr-demo up [options]       boot and populate the session, leave it running
+#   herdr-demo down [options]     stop and delete the session
+#   herdr-demo doctor [options]   check the toolchain and the scenario
+#
+# Options:
+#   -s, --scenario DIR    scenario directory (default: scripts/demo)
+#   -o, --out FILE        output GIF (default: scenario's DEMO_OUT or docs/demo.gif)
+#   --keep-session        record: leave the demo session running afterwards
+#   --keep-cast FILE      record: keep the trimmed asciicast for inspection
+#   -h, --help
+#
+# See README.md for the scenario contract and the keys.json format.
+set -euo pipefail
+
+KIT_ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+# shellcheck source=../lib/common.sh
+source "$KIT_ROOT/lib/common.sh"
+# shellcheck source=../lib/session.sh
+source "$KIT_ROOT/lib/session.sh"
+# shellcheck source=../lib/record.sh
+source "$KIT_ROOT/lib/record.sh"
+
+usage() { sed -n '2,/^set -euo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'; }
+
+scenario_dir="scripts/demo"
+out_override=""
+keep_session=0
+cmd="${1:-}"
+[[ $# -gt 0 ]] && shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -s|--scenario) scenario_dir="$2"; shift 2 ;;
+    -o|--out) out_override="$2"; shift 2 ;;
+    --keep-session) keep_session=1; shift ;;
+    --keep-cast) DEMO_KEEP_CAST="$2"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown option: $1 (see --help)" ;;
+  esac
+done
+
+load_scenario() {
+  [[ -d "$scenario_dir" ]] || die "scenario directory not found: $scenario_dir"
+  DEMO_DIR="$(cd "$scenario_dir" && pwd)"
+  [[ -f "$DEMO_DIR/scenario.sh" ]] || die "missing $DEMO_DIR/scenario.sh"
+  DEMO_ROOT="$PWD"
+  DEMO_DRIVER="$KIT_ROOT/lib/driver.py"
+
+  # Environment overrides win over scenario.sh, which wins over these
+  # defaults. Capture the environment first, restore it after sourcing.
+  local v
+  local -a overridable=(DEMO_SESSION DEMO_OUT DEMO_COLS DEMO_ROWS DEMO_PREFIX
+    DEMO_LINGER DEMO_START_CWD DEMO_THEME DEMO_FONT_DIR DEMO_FONT_FAMILY
+    DEMO_FONT_SIZE DEMO_LAST_FRAME DEMO_KEYS)
+  local -A from_env=()
+  for v in "${overridable[@]}"; do
+    [[ -n "${!v:-}" ]] && from_env[$v]="${!v}"
+  done
+
+  DEMO_SESSION="demo"
+  DEMO_OUT="docs/demo.gif"
+  DEMO_COLS=170
+  DEMO_ROWS=44
+  DEMO_PREFIX="ctrl+b"
+  DEMO_LINGER=2.4
+  DEMO_START_CWD="$DEMO_ROOT"
+  DEMO_THEME="dracula"
+  DEMO_FONT_DIR="$HOME/Library/Fonts"
+  DEMO_FONT_FAMILY="Berkeley Mono"
+  DEMO_FONT_SIZE=14
+  DEMO_LAST_FRAME=2
+  DEMO_KEYS="$DEMO_DIR/keys.json"
+  DEMO_SESSION_ENV=()
+
+  # shellcheck source=/dev/null
+  source "$DEMO_DIR/scenario.sh"
+
+  for v in "${!from_env[@]}"; do printf -v "$v" '%s' "${from_env[$v]}"; done
+  [[ -n "$out_override" ]] && DEMO_OUT="$out_override"
+
+  DEMO_SOCKET="$HOME/.config/herdr/sessions/$DEMO_SESSION/herdr.sock"
+  declare -f demo_setup >/dev/null || die "scenario.sh must define demo_setup()"
+  [[ -f "$DEMO_KEYS" ]] || die "missing keystroke script: $DEMO_KEYS"
+  [[ -d "$DEMO_START_CWD" ]] || die "DEMO_START_CWD does not exist: $DEMO_START_CWD"
+}
+
+cleanup() {
+  if [[ "$keep_session" -eq 1 ]]; then
+    demo_session_release_hold
+    log "session $DEMO_SESSION left running (attach: HERDR_SOCKET_PATH=$DEMO_SOCKET herdr session attach $DEMO_SESSION)"
+  else
+    demo_session_down
+  fi
+  if declare -f demo_teardown >/dev/null; then demo_teardown || true; fi
+}
+
+prepare_session() {
+  if declare -f demo_build >/dev/null; then demo_build; fi
+  demo_session_up
+  demo_setup
+  demo_focus_workspace "$(demo_first_workspace)"
+  demo_session_release_hold
+}
+
+case "$cmd" in
+  record)
+    require_cmd herdr asciinema agg python3
+    load_scenario
+    trap cleanup EXIT
+    prepare_session
+    demo_record
+    ;;
+  up)
+    require_cmd herdr python3
+    load_scenario
+    keep_session=1
+    trap cleanup EXIT
+    prepare_session
+    ;;
+  down)
+    require_cmd herdr
+    load_scenario
+    demo_session_down
+    if declare -f demo_teardown >/dev/null; then demo_teardown || true; fi
+    log "session $DEMO_SESSION stopped and deleted"
+    ;;
+  doctor)
+    status=0
+    for c in herdr asciinema agg python3; do
+      if command -v "$c" >/dev/null 2>&1; then echo "ok   $c ($(command -v "$c"))"
+      else echo "MISS $c"; status=1; fi
+    done
+    if command -v asciinema >/dev/null 2>&1; then
+      ver="$(asciinema --version | awk '{print $2}')"
+      [[ "${ver%%.*}" -ge 3 ]] && echo "ok   asciinema $ver (>= 3)" || { echo "BAD  asciinema $ver (need >= 3 for --headless)"; status=1; }
+    fi
+    load_scenario
+    if ls "$DEMO_FONT_DIR" 2>/dev/null | grep -qi "$(printf '%s' "$DEMO_FONT_FAMILY" | tr -d ' ')"; then
+      echo "ok   font '$DEMO_FONT_FAMILY' in $DEMO_FONT_DIR"
+    else echo "MISS font '$DEMO_FONT_FAMILY' in $DEMO_FONT_DIR"; status=1; fi
+    python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$DEMO_KEYS" && echo "ok   keys $DEMO_KEYS" || { echo "BAD  keys $DEMO_KEYS (invalid JSON)"; status=1; }
+    echo "ok   scenario $DEMO_DIR (session=$DEMO_SESSION out=$DEMO_OUT ${DEMO_COLS}x${DEMO_ROWS} prefix=$DEMO_PREFIX)"
+    exit "$status"
+    ;;
+  ""|-h|--help) usage; exit 0 ;;
+  *) die "unknown command: $cmd (see --help)" ;;
+esac
