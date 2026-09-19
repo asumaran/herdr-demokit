@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# herdr-demo — record README demo GIFs of herdr plugins.
+# asdemo — record README demo GIFs of herdr plugins.
 #
 # A scenario directory (default ./scripts/demo of the plugin you run this
 # from) holds:
@@ -8,10 +8,10 @@
 #   keys.json     the keystrokes to replay once the client is attached
 #
 # Commands:
-#   herdr-demo record [options]   build, boot the session, record, render, tear down
-#   herdr-demo up [options]       boot and populate the session, leave it running
-#   herdr-demo down [options]     stop and delete the session
-#   herdr-demo doctor [options]   check the toolchain and the scenario
+#   asdemo record [options]   build, boot the session, record, render, tear down
+#   asdemo up [options]       boot and populate the session, leave it running
+#   asdemo down [options]     stop and delete the session
+#   asdemo doctor [options]   check the toolchain and the scenario
 #
 # Options:
 #   -s, --scenario DIR    scenario directory (default: scripts/demo)

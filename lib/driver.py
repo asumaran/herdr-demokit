@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pty driver for herdr-demo recordings.
+"""Pty driver for asdemo recordings.
 
 Runs a command inside a fixed-size pty, relays its output to stdout (which
 asciinema records) and answers the terminal queries TUIs send at startup
@@ -117,7 +117,7 @@ QUERY_REPLIES = [
      lambda m: b"\x1b]10;rgb:f8f8/f8f8/f2f2" + m.group(1)),
     (re.compile(rb"\x1b\[6n"), lambda m: b"\x1b[1;1R"),
     (re.compile(rb"\x1b\[0?c"), lambda m: b"\x1b[?62;22c"),
-    (re.compile(rb"\x1b\[>0?q"), lambda m: b"\x1bP>|herdr-demo\x1b\\"),
+    (re.compile(rb"\x1b\[>0?q"), lambda m: b"\x1bP>|asdemo\x1b\\"),
     (re.compile(rb"\x1b\[\?u"), lambda m: b"\x1b[?0u"),
     (re.compile(rb"\x1b\[\?(\d+)\$p"), lambda m: b"\x1b[?" + m.group(1) + b";0$y"),
 ]

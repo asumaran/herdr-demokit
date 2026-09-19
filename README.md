@@ -1,4 +1,4 @@
-# herdr-demokit
+# asdemokit
 
 Records README demo GIFs of [herdr](https://github.com/herdrdev/herdr)
 plugins. One tool, one scenario per plugin: the tool boots an isolated herdr
@@ -7,16 +7,16 @@ keystroke script against an attached client, records it headless with
 asciinema and renders the GIF with agg. The user's default herdr session is
 never touched.
 
-Used by [herdr-goto](https://github.com/asumaran/herdr-goto),
-[gotopr](https://github.com/asumaran/gotopr) and
-[herdr-confirm-close](https://github.com/asumaran/herdr-confirm-close); each
+Used by [asgoto](https://github.com/asumaran/asgoto),
+[asgotopr](https://github.com/asumaran/asgotopr) and
+[asconfirmclose](https://github.com/asumaran/asconfirmclose); each
 keeps its own `scripts/demo/` scenario.
 
 ## Install
 
 ```sh
-git clone https://github.com/asumaran/herdr-demokit ~/Developer/herdr-demokit
-export PATH="$HOME/Developer/herdr-demokit/bin:$PATH"   # or symlink bin/herdr-demo
+git clone https://github.com/asumaran/asdemokit ~/Developer/asdemokit
+export PATH="$HOME/Developer/asdemokit/bin:$PATH"   # or symlink bin/asdemo
 ```
 
 Requirements:
@@ -27,18 +27,18 @@ Requirements:
 - bash >= 4 (`brew install bash`; macOS's `/bin/bash` is 3.2) and `python3`.
 - The GIF font in `~/Library/Fonts` (default: Berkeley Mono).
 
-`herdr-demo doctor` checks all of that.
+`asdemo doctor` checks all of that.
 
 ## Usage
 
 From the plugin's repo root:
 
 ```sh
-herdr-demo record                 # -> docs/demo.gif (scenario's DEMO_OUT)
-herdr-demo record -o /tmp/try.gif --keep-cast /tmp/try.cast
-herdr-demo up                     # boot + populate the session, leave it running
-herdr-demo down                   # stop + delete it
-herdr-demo doctor
+asdemo record                 # -> docs/demo.gif (scenario's DEMO_OUT)
+asdemo record -o /tmp/try.gif --keep-cast /tmp/try.cast
+asdemo up                     # boot + populate the session, leave it running
+asdemo down                   # stop + delete it
+asdemo doctor
 ```
 
 Options: `-s/--scenario DIR` (default `scripts/demo`), `-o/--out FILE`,
@@ -71,7 +71,7 @@ and hooks:
 | `DEMO_KEYS` | `<scenario>/keys.json` | keystroke script |
 
 Any of these can also be overridden from the environment
-(`DEMO_COLS=200 herdr-demo record`).
+(`DEMO_COLS=200 asdemo record`).
 
 - `demo_setup()` (required): populate the session. Runs with the server up
   and a holding client attached; the initial workspace already exists with

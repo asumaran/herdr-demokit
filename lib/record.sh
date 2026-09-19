@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 # record.sh — record the populated demo session with asciinema and render the
-# GIF with agg. Sourced by bin/herdr-demo after session.sh.
+# GIF with agg. Sourced by bin/asdemo after session.sh.
 
 demo_record() {
   local cast
-  cast="$(mktemp -t herdr-demo).cast"
+  cast="$(mktemp -t asdemo).cast"
 
   # --headless: don't touch the invoking terminal. --window-size matches the
   # driver's pty. asciicast-v2 because agg doesn't read the newer v3 format.

@@ -4,17 +4,17 @@ Guidance for working in this repository.
 
 ## What this is
 
-`herdr-demokit` is the tool that records the README demo GIFs of the
-asumaran herdr plugins (`herdr-goto`, `gotopr`, `herdr-confirm-close`). It
+`asdemokit` is the tool that records the README demo GIFs of the
+asumaran herdr plugins (`asgoto`, `asgotopr`, `asconfirmclose`). It
 lives on the development machine only (cloned under `~/Developer`, `bin/` on
 PATH); it never ships with the plugins and is never run in CI, since a take
 needs the user's herdr config/keybinds, personal repos, fonts and `gh` auth.
 Each plugin keeps its own scenario under `scripts/demo/` (`scenario.sh` +
-`keys.json`) and runs `herdr-demo record` from its repo root.
+`keys.json`) and runs `asdemo record` from its repo root.
 
 ## Layout
 
-- `bin/herdr-demo` — the CLI (`record`, `up`, `down`, `doctor`): option
+- `bin/asdemo` — the CLI (`record`, `up`, `down`, `doctor`): option
   parsing, scenario loading (defaults < scenario.sh < environment), the
   record flow and the EXIT trap that tears the session down.
 - `lib/common.sh` — `CLEAN_ENV` (strips inherited `HERDR_*` so the demo
@@ -41,7 +41,7 @@ only, asciinema >= 3 (`--headless`), agg.
   (`scenario.sh`): plugins differ mostly in what the session holds, so the
   layout gets the full shell + helpers, while keystrokes stay declarative.
 - Environment overrides beat `scenario.sh` for every `DEMO_*` setting, so a
-  one-off `DEMO_COLS=200 herdr-demo record` needs no edit.
+  one-off `DEMO_COLS=200 asdemo record` needs no edit.
 - The tool always recreates the session (stop + delete + boot) per take and
   tears it down on exit, even on failure. `--keep-session` is a debugging
   aid only.

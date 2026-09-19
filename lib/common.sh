@@ -1,7 +1,7 @@
 # shellcheck shell=bash
-# common.sh — shared definitions for herdr-demo. Sourced by bin/herdr-demo.
+# common.sh — shared definitions for asdemo. Sourced by bin/asdemo.
 
-log() { printf 'herdr-demo: %s\n' "$*" >&2; }
+log() { printf 'asdemo: %s\n' "$*" >&2; }
 die() { log "$*"; exit 1; }
 
 # The recording may itself run from inside a herdr pane; strip the inherited

@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # session.sh — lifecycle of the isolated demo herdr session plus the helpers a
-# scenario.sh uses to populate it. Sourced by bin/herdr-demo after common.sh.
+# scenario.sh uses to populate it. Sourced by bin/asdemo after common.sh.
 #
 # The demo session has its own socket and state dir, so the user's default
 # herdr session is never touched. Starting a client is what boots a session
