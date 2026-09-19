@@ -91,7 +91,6 @@ load_scenario() {
   DEMO_SOCKET="$HOME/.config/herdr/sessions/$DEMO_SESSION/herdr.sock"
   declare -f demo_setup >/dev/null || die "scenario.sh must define demo_setup()"
   [[ -f "$DEMO_KEYS" ]] || die "missing keystroke script: $DEMO_KEYS"
-  [[ -d "$DEMO_START_CWD" ]] || die "DEMO_START_CWD does not exist: $DEMO_START_CWD"
 }
 
 cleanup() {
@@ -106,6 +105,9 @@ cleanup() {
 
 prepare_session() {
   if declare -f demo_build >/dev/null; then demo_build; fi
+  # Checked after demo_build: a scenario may build the directory it starts in
+  # (a throwaway clone, a fixture repository).
+  [[ -d "$DEMO_START_CWD" ]] || die "DEMO_START_CWD does not exist: $DEMO_START_CWD"
   demo_session_up
   demo_setup
   demo_focus_workspace "$(demo_first_workspace)"

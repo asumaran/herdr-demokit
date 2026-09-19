@@ -116,7 +116,9 @@ relative to the previous step:
 
 - `["wait", seconds]`
 - `["key", name]`: `enter`, `esc`, `tab`, `backspace`, `space`, arrows,
-  `ctrl+<letter>`, `prefix`, or a single literal character.
+  `shift+up`/`shift+down`, `ctrl+<letter>`, `ctrl+alt+<letter>` (for plugins
+  bound to a chord with no prefix variant), `prefix`, or a single literal
+  character.
 - `["type", text]` / `["type", text, interval]`: one character every
   `interval` seconds (default 0.17).
 - `["prefix", name]`: herdr chord, i.e. prefix, 0.35 s, then the key.

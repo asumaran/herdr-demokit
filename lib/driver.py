@@ -69,8 +69,13 @@ def key_bytes(name: str) -> bytes:
         return key_bytes(os.environ.get("DEMO_PREFIX", "ctrl+b"))
     if name in KEY_NAMES:
         return KEY_NAMES[name]
+    if name.startswith("ctrl+alt+") and len(name) == 10 and name[9].isalpha():
+        # legacy encoding: alt is an ESC prefix on the control byte
+        return b"\x1b" + bytes([ord(name[9].lower()) - 96])
     if name.startswith("ctrl+") and len(name) == 6 and name[5].isalpha():
         return bytes([ord(name[5].lower()) - 96])
+    if name in ("shift+down", "shift+up"):
+        return b"\x1b[1;2B" if name == "shift+down" else b"\x1b[1;2A"
     if len(name) == 1:
         return name.encode()
     raise ValueError(f"unknown key name: {name!r}")
